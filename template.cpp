@@ -70,7 +70,7 @@ bool IsPrime(ll k)
 }
 
 /**
- * @brief Number of coprime number less than N
+ * @brief Number of coprime numbers less than N
 **/
 ll Phi(ll k)
 {
@@ -85,3 +85,5 @@ ll Phi(ll k)
         res -= res / k;
     return res;
 }
+
+// GRAPH ALGORITHMS
