@@ -53,8 +53,7 @@ ll ModMultInverse(ll k, ll mod)
 {
     ll x, y;
     ll g = GCD(k, mod, x, y);
-    if (g != 1)
-        throw invalid_argument("Inverse finding failed; check if base is prime");
+    assert(g != 1);
     return (x % mod + mod) % mod;
 }
 
@@ -63,6 +62,7 @@ ll ModMultInverse(ll k, ll mod)
 **/
 bool IsPrime(ll k)
 {
+    assert(k >= 2);
     for(ll i = 2, sq = 4; sq <= k; sq += i * 2 + 1, i++)
         if (k % i == 0)
             return 0;
@@ -75,6 +75,7 @@ bool IsPrime(ll k)
 ll Phi(ll k)
 {
     ll res = k;
+    assert(k >= 1);
     for(ll i = 2, sq = 4; sq <= k; sq += i * 2 + 1, i++)
         if (k % i == 0) {
             while (k % i == 0)
@@ -100,10 +101,12 @@ class FenwickTree {
         vector<T> __tree;
         T (&__add_func)(T t1, T t2);
         T __zerovalue;
+        int __size;
 
     public:
         FenwickTree(int size, T zerovalue, T (&add_func)(T t1, T t2)) : __add_func(add_func)
         {
+            __size = size;
             __tree.resize(size);
             fill(__tree.begin(), __tree.end(), zerovalue);
             __zerovalue = zerovalue;
@@ -111,15 +114,18 @@ class FenwickTree {
 
         void update(int pos, T val)
         {
-            int n = __tree.size();
+            assert(pos >= 0);
+            assert(pos < __size);
             pos++;
-            for(; pos <= n; pos += (pos & -pos))
+            for(; pos <= __size; pos += (pos & -pos))
                 __tree[pos - 1] = __add_func(__tree[pos - 1], val);
             return;
         }
 
         T get(int pos)
         {
+            assert(pos >= 0);
+            assert(pos < __size);
             T ans = __zerovalue;
             pos++;
             for(; pos > 0; pos -= (pos & -pos))
@@ -160,7 +166,7 @@ class SegmentTree {
         T __get(int l, int r, int sl, int sr, int t)
         {
             if (l == sl && r == sr)
-                return tree[t];
+                return __tree[t];
             int lt = t * 2 + 1;
             int rt = t * 2 + 2;
             int m = (l + r) / 2;
@@ -186,13 +192,107 @@ class SegmentTree {
 
         void update(int pos, T val)
         {
+            assert(pos >= 0);
+            assert(pos < __size);
             __update(0, __size - 1, 0, pos, val);
             return;
         }
         
         T get(int l, int r)
         {
+            assert(l >= 0);
+            assert(r < __size);
+            assert(l <= r);
             return __get(0, __size - 1, l, r, 0);
+        }
+};
+
+/**
+ * @brief DSU with amortization by default.
+ * 
+ * Numeration from 1.
+**/
+class DSU {
+    private:
+        vector<int> __lnk;
+        vector<int> __sz;
+        int __size;
+        bool __amortized;
+
+        int __find_nonamortized(int k)
+        {
+            if (__lnk[k] == k)
+                return k;
+            return find(__lnk[k]);
+        }
+
+        int __find_amortized(int k)
+        {
+            if (__lnk[k] == k)
+                return k;
+            return __lnk[k] = find(__lnk[k]);
+        }
+
+    public:
+        void clear();
+
+        DSU(int sz) {
+            __lnk.resize(sz + 1);
+            __sz.resize(sz + 1);
+            __size = sz;
+            clear();
+            __amortized = 1;
+        }
+
+        DSU(int sz, bool amortized)
+        {
+            __lnk.resize(sz + 1);
+            __sz.resize(sz + 1);
+            __size = sz;
+            clear();
+            __amortized = amortized;
+        }
+
+        void clear()
+        {
+            for(int i = 1; i <= __size; i++) {
+                __lnk[i] = i;
+                __sz[i] = 1;
+            }
+            return;
+        }
+
+        int find(int k)
+        {
+            assert(k > 0);
+            assert(k <= __size);
+            if (__amortized)
+                return __find_amortized(k);
+            else
+                return __find_nonamortized(k);
+        }
+
+        bool same(int a, int b)
+        {
+            return find(a) == find(b);
+        }
+
+        void unite(int a, int b)
+        {
+            a = find(a);
+            b = find(b);
+            if (__sz[a] < __sz[b])
+                swap(a, b);
+            __lnk[b] = a;
+            __sz[a] += __sz[b];
+            return;
+        }
+
+        int size_of(int k)
+        {
+            assert(k > 0);
+            assert(k <= __size);
+            return __sz[k];
         }
 };
 
