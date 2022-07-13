@@ -4,19 +4,20 @@
 
 using namespace std;
 
-typedef long long ll;
-typedef unsigned long long ull;
-// typedef __int128_t int128;
+using ll = long long;
+using ull = unsigned long long;
 
-const int N = 100;
-long long  INF = 0x3f3f3f3f3f3f3f3f;
-const int MOD = 1e9+7;
+ll INF = 0x3f3f3f3f3f3f3f3f;
 
 #define endl '\n'
 #define rep(i, a, b) for(int i = (a); i < (b); i++)
 #define popcount(a) __builtin_popcount(a)
 #define lzcnt(a) __builtin_ctl(a)
 #define tzcnt(a) __builtin_ctz(a)
+
+#ifndef ONLINE_JUDGE
+    #define NDEBUG
+#endif
 
 
 // NUMBER THEORY ALGORITHMS
@@ -210,7 +211,7 @@ class SegmentTree {
 /**
  * @brief DSU with amortization by default.
  * 
- * Numeration from 1.
+ * Numeration from 0.
 **/
 class DSU {
     private:
@@ -237,8 +238,8 @@ class DSU {
         void clear();
 
         DSU(int sz) {
-            __lnk.resize(sz + 1);
-            __sz.resize(sz + 1);
+            __lnk.resize(sz);
+            __sz.resize(sz);
             __size = sz;
             clear();
             __amortized = 1;
@@ -246,8 +247,8 @@ class DSU {
 
         DSU(int sz, bool amortized)
         {
-            __lnk.resize(sz + 1);
-            __sz.resize(sz + 1);
+            __lnk.resize(sz);
+            __sz.resize(sz);
             __size = sz;
             clear();
             __amortized = amortized;
@@ -255,7 +256,7 @@ class DSU {
 
         void clear()
         {
-            for(int i = 1; i <= __size; i++) {
+            for(int i = 0; i < __size; i++) {
                 __lnk[i] = i;
                 __sz[i] = 1;
             }
@@ -264,8 +265,8 @@ class DSU {
 
         int find(int k)
         {
-            assert(k > 0);
-            assert(k <= __size);
+            assert(k >= 0);
+            assert(k < __size);
             if (__amortized)
                 return __find_amortized(k);
             else
@@ -288,11 +289,26 @@ class DSU {
             return;
         }
 
+        /**
+         * Warning: works only if a -> b or b -> a
+         **/
+        void separate(int a, int b)
+        {
+            assert(!__amortized);
+            if (find(a) == b)
+                swap(a, b);
+            __sz[a] -= __sz[b];
+            __lnk[b] = b;
+            return;
+        }
+
         int size_of(int k)
         {
-            assert(k > 0);
-            assert(k <= __size);
+            assert(k >= 0);
+            assert(k < __size);
             return __sz[k];
         }
 };
 
+const int N = 1e5;
+const int MOD = 1e9+7;
